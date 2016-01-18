@@ -52,7 +52,7 @@
                  [org.immutant/messaging "2.1.2"]
                  [org.immutant/scheduling "2.1.2"]
                  [org.immutant/transactions "2.1.2"]
-                 
+
                  ]
 
   :plugins [[lein-cljsbuild "1.1.1"]
@@ -69,7 +69,8 @@
   :uberjar-name "iap2016.jar"
 
   ;; Use `lein run` if you just want to start a HTTP server, without figwheel
-  :main iap2016.server
+  ;; :main iap2016.server
+  :main ^:skip-aot gorilla-test.core
 
   ;; for immutant;
   ;; see http://immutant.org/builds/1214/html-docs/initialization.html
@@ -142,7 +143,8 @@
                              ]
 
               :plugins [[lein-figwheel "0.5.0-2"]
-                        [lein-doo "0.1.6"]]
+                        [lein-doo "0.1.6"]
+                        [lein-gorilla "0.3.5"]]
 
               :cljsbuild {:builds
                           {:test

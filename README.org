@@ -116,3 +116,12 @@ your option) any later version.
 ** Chestnut
 
 Created with [Chestnut](http://plexus.github.io/chestnut/) 0.9.0-SNAPSHOT (5899fff7).
+** gorilla repl
+
+   after modifying project.clj
+
+   =lein gorilla= launches the gorilla repl server;
+   the active link should be like http://locaalhost:?????/worksheet.html
+   
+
+
