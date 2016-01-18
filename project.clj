@@ -20,7 +20,10 @@
 
 
                  [reagent "0.6.0-alpha" :exclusions [cljsjs/react]]
-                 [cljsjs/react-with-addons "0.13.3-0"]
+                 [cljsjs/react-dom "0.14.3-1"]
+                 [cljsjs/react-dom-server "0.14.3-0"]
+                 [cljsjs/react-with-addons "0.14.3-0"]
+                 
                  [cljsjs/nvd3 "1.8.1-0"]
                  [cljsjs/phaser "2.4.2-0"]
 
@@ -36,7 +39,7 @@
                  [com.taoensso/sente "1.7.0"]
                  ;; see https://github.com/ptaoussanis/sente
                  ;; [taoensso.sente.server-adapters.immutant :refer (sente-web-server-adapter)]
-                 [org.clojure/core.async "0.1.374"]
+                 [org.clojure/core.async "0.2.374"]
 
                  [cljsjs/codemirror "5.10.0-0"]
 
