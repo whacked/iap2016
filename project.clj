@@ -39,7 +39,8 @@
                  ;; flat file db
                  ;; [com.taoensso/nippy "2.10.0"]
                  
-                 [com.taoensso/sente "1.7.0"]
+                 [com.taoensso/sente "1.7.0" :exclusions [com.taoensso/encore]] ;; websocket comm
+                 [com.taoensso/timbre "4.2.1"] ;; logging
                  [org.clojure/core.async "0.2.374"]
 
                  [cljsjs/codemirror "5.10.0-0"]
