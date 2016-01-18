@@ -152,6 +152,8 @@
      "submit"]]])
 
 ;; init app
+(start-router!)
+
 (reagent/render-component
  ;;main-component
  chatroom-component
