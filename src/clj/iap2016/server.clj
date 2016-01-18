@@ -36,17 +36,6 @@
   (def connected-uids                connected-uids) ; Watchable, read-only atom
   )
 
-(defroutes routes
-  
-  (GET  "/chsk" req (ring-ajax-get-or-ws-handshake req))
-  (POST "/chsk" req (ring-ajax-post                req))
-  
-  (GET "/" _
-    {:status 200
-     :headers {"Content-Type" "text/html; charset=utf-8"}
-     :body (io/input-stream (io/resource "public/index.html"))})
-  (resources "/"))
-
 
 
 ;; === utility ===============================
@@ -114,10 +103,24 @@
 (defn start-router! []
   (stop-router!)
   (reset! router_ (sente/start-chsk-router! ch-chsk event-msg-handler*)))
-
+(defn restart-router! []
+  (stop-router!)
+  (start-router!))
 ;; (start-router!)
 
 
+(defroutes routes
+  
+  (GET  "/chsk" req (ring-ajax-get-or-ws-handshake req))
+  (POST "/chsk" req (ring-ajax-post                req))
+
+  (POST "/login" req (login! req))
+  
+  (GET "/" _
+    {:status 200
+     :headers {"Content-Type" "text/html; charset=utf-8"}
+     :body (io/input-stream (io/resource "public/index.html"))})
+  (resources "/"))
 
 (def http-handler
   (-> (wrap-defaults
