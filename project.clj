@@ -12,6 +12,9 @@
                  [ring.middleware.logger "0.5.0"]
                  [compojure "1.4.0"]
 
+                 ;; better cljs debugging
+                 [binaryage/devtools "0.5.0"]
+
                  
                  ;; chestnut default; preferring reagent
                  ;; [org.omcljs/om "1.0.0-alpha28"]
@@ -37,8 +40,6 @@
                  ;; [com.taoensso/nippy "2.10.0"]
                  
                  [com.taoensso/sente "1.7.0"]
-                 ;; see https://github.com/ptaoussanis/sente
-                 ;; [taoensso.sente.server-adapters.immutant :refer (sente-web-server-adapter)]
                  [org.clojure/core.async "0.2.374"]
 
                  [cljsjs/codemirror "5.10.0-0"]
@@ -67,6 +68,11 @@
 
   ;; Use `lein run` if you just want to start a HTTP server, without figwheel
   :main iap2016.server
+
+  ;; for immutant;
+  ;; see http://immutant.org/builds/1214/html-docs/initialization.html
+  :ring {:handler iap2016.server/http-handler}
+  :immutant {:init iap2016.server/immutant-start}
 
   ;; nREPL by default starts in the :main namespace, we want to start in `user`
   ;; because that's where our development helper functions like (run) and
