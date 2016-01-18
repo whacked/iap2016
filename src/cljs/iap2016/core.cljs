@@ -40,17 +40,19 @@
     [:span
      {:style {:font-weight "bold"}}
      (@chatroom-state :title)]]
-   (apply
-    vector
-    :ul
-    {:style {:list-style "none"
-             :background "beige"}}
-    (for [username (@chatroom-state :user-list)]
-      [:li
-       {:style {:border "1px solid orange"
-                :padding "2px"
-                :float "left"}}
-       username]))
+   [:div
+    "who's here:"
+    (apply
+     vector
+     :ul
+     {:style {:list-style "none"
+              :background "beige"}}
+     (for [username (@chatroom-state :user-list)]
+       [:li
+        {:style {:border "1px solid orange"
+                 :padding "2px"
+                 :float "left"}}
+        username]))]
    [:div
     ;; message log
     (apply vector
