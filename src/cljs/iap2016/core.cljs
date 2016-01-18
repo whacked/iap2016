@@ -35,6 +35,10 @@
     }))
 (defn chatroom-component []
   [:div
+   {:style {:border "2px solid gray"
+            :padding "2px"
+            :width "600px"
+            }}
    [:div
     "welcome to "
     [:span
