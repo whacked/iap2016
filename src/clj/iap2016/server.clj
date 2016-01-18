@@ -109,9 +109,23 @@
           :message-history (:message-history @db)
           }))))
 
+(defonce router_ (atom nil))
+(defn  stop-router! [] (when-let [stop-f @router_] (stop-f)))
+(defn start-router! []
+  (stop-router!)
+  (reset! router_ (sente/start-chsk-router! ch-chsk event-msg-handler*)))
+
+;; (start-router!)
+
+
+
 (def http-handler
   (-> routes
-      (wrap-defaults api-defaults)
+      (wrap-defaults
+       (assoc-in
+        api-defaults
+        [:security :anti-forgery]
+        {:read-token (fn [req] (-> req :params :csrf-token))}))
       ring.middleware.keyword-params/wrap-keyword-params
       ring.middleware.params/wrap-params
       wrap-with-logger
