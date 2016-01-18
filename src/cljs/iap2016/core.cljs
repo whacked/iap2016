@@ -43,10 +43,11 @@
    (apply
     vector
     :ul
-    {:style {:list-style "none"}}
+    {:style {:list-style "none"
+             :background "beige"}}
     (for [username (@chatroom-state :user-list)]
       [:li
-       {:style {:border "1px solid blue"
+       {:style {:border "1px solid orange"
                 :padding "2px"
                 :float "left"}}
        username]))])
