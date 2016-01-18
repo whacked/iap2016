@@ -1,9 +1,13 @@
 (ns iap2016.core
   (:require [reagent.core :as reagent]
 
+            [devtools.core :as devtools]
+            
             [goog.dom :as dom]
             ))
 
+(devtools/enable-feature! :sanity-hints :dirac)
+(devtools/install!)
 (enable-console-print!)
 
 ;; === utility ================================
