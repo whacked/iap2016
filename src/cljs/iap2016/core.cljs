@@ -57,8 +57,8 @@
                  :padding "2px"
                  :display "inline"}}
         username]))]
+   ;; message log
    [:div
-    ;; message log
     (apply vector
            :div
            (for [msg (@chatroom-state :message-history)]
@@ -70,7 +70,17 @@
                         :height "4em"
                         }}
                (:content msg)]]))
-    ]])
+    ]
+   ;; input area
+   [:div
+    [:textarea
+     {:placeholder "enter your message here"
+      :style {:width "100%"}}]
+    [:button
+     {:onClick (fn [_]
+                 (js/console.log "clicked"))
+      :type "button"}
+     "submit"]]])
 
 ;; init app
 (reagent/render-component
