@@ -1,6 +1,7 @@
 (ns iap2016.core
   (:require [reagent.core :as reagent]
-            
+
+            [goog.dom :as dom]
             ))
 
 (enable-console-print!)
@@ -73,8 +74,10 @@
     ]
    ;; input area
    [:div
+    ;; don't want to attach key listeners to this item, we will cheat
     [:textarea
-     {:placeholder "enter your message here"
+     {:id "inp-chat-message"
+      :placeholder "enter your message here"
       :style {:width "100%"}}]
     [:button
      {:onClick (fn [_]
@@ -86,6 +89,6 @@
 (reagent/render-component
  ;;main-component
  chatroom-component
- (js/document.getElementById "app"))
+ (dom/getElement "app"))
 
 
