@@ -86,7 +86,7 @@
     [:button
      {:onClick (fn [_]
                  (js/console.log
-                  (.-value (dom/getElement "inp-chat-message"))))
+                  {:message (.-value (dom/getElement "inp-chat-message"))}))
       :type "button"}
      "submit"]]])
 
