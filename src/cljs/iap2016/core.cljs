@@ -77,6 +77,8 @@
   ;; start-chsk-router! returns a stopping function
   (reset! router_ (sente/start-chsk-router! ch-chsk event-msg-handler*)))
 
+
+
 ;; === hello world ============================
 (defonce app-state
   (reagent/atom
@@ -93,11 +95,9 @@
 ;; :username :content :timestamp
 (defonce chatroom-state
   (reagent/atom
-   {:title "room of chatter"
-    :user-list ["bot"] ;; unique
-    :message-history [{:username "bot"
-                       :content "hi everybody"
-                       :timestamp (tnow)}]
+   {:title "connecting..."
+    :user-map {}
+    :message-history []
     }))
 (defn chatroom-component []
   [:div
@@ -117,7 +117,7 @@
      :ul
      {:style {:list-style "none"
               :background "beige"}}
-     (for [username (@chatroom-state :user-list)]
+     (for [username (keys (@chatroom-state :user-map))]
        [:li
         {:style {:border "1px solid orange"
                  :padding "2px"
@@ -129,7 +129,7 @@
            :div
            (for [msg (@chatroom-state :message-history)]
              [:div
-              (:username msg) ":"
+              (:username msg) " said:"
               [:textarea
                {:readOnly "readOnly"
                 :style {:width "100%"
@@ -151,6 +151,25 @@
       :type "button"}
      "submit"]]])
 
+
+;; === event handler ======================
+(defn reload-from-server!
+  "ignore local state and reload data from server as if we just joined"
+  []
+  (let []
+    (chsk-send!
+     [:server/load-snapshot] 5000
+     (fn [data]
+       (dlog "reset...")
+       (dlog data)
+       (when (cb-success? data)
+         (swap! 
+          chatroom-state
+          assoc
+          :user-map (:user-map data)
+          :message-history (:message-history data)))))))
+
+
 ;; init app
 (start-router!)
 
@@ -158,5 +177,7 @@
  ;;main-component
  chatroom-component
  (dom/getElement "app"))
+
+;; (reload-from-server!)
 
 
