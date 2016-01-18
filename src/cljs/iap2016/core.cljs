@@ -51,7 +51,7 @@
        [:li
         {:style {:border "1px solid orange"
                  :padding "2px"
-                 :float "left"}}
+                 :display "inline"}}
         username]))]
    [:div
     ;; message log
