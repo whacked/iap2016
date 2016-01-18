@@ -1,18 +1,18 @@
 (ns iap2016.core
-  (:require [om.core :as om :include-macros true]
-            [om.dom :as dom :include-macros true]))
+  (:require [reagent.core :as reagent]
+            ))
 
 (enable-console-print!)
 
-(defonce app-state (atom {:text "Hello Chestnut!"}))
+(defonce app-state (reagent/atom {:text "Hello Chestnut!"}))
 
-(defn root-component [app owner]
-  (reify
-    om/IRender
-    (render [_]
-      (dom/div nil (dom/h1 nil (:text app))))))
+(defn main-component []
+  [:div
+   [:h1 (:text @app-state)]
+   ])
 
-(om/root
- root-component
- app-state
- {:target (. js/document (getElementById "app"))})
+(reagent/render-component
+ [main-component]
+ (js/document.getElementById "app"))
+
+
