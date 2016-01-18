@@ -59,8 +59,9 @@
            :div
            (for [msg (@chatroom-state :message-history)]
              [:div
-              (:username msg)
-              (:content msg)]))
+              (:username msg) ":"
+              [:div
+               (:content msg)]]))
     ]])
 
 ;; init app
