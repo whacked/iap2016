@@ -6,7 +6,7 @@
 (enable-console-print!)
 
 ;; === utility ================================
-(defn t.now
+(defn tnow
   "get current time"
   []
   (.getTime (js/Date.)))
