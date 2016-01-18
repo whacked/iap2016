@@ -38,7 +38,7 @@
    {:style {:border "2px solid gray"
             :padding "2px"
             :width "600px"
-            }}
+            :height "100%"}}
    [:div
     "welcome to "
     [:span
