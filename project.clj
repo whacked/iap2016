@@ -11,8 +11,43 @@
                  [bk/ring-gzip "0.1.1"]
                  [ring.middleware.logger "0.5.0"]
                  [compojure "1.4.0"]
-                 [org.omcljs/om "1.0.0-alpha28"]
-                 [environ "1.0.1"]]
+
+                 
+                 ;; chestnut default; preferring reagent
+                 ;; [org.omcljs/om "1.0.0-alpha28"]
+                 
+                 [environ "1.0.1"]
+
+
+                 [reagent "0.6.0-alpha" :exclusions [cljsjs/react]]
+                 [cljsjs/react-with-addons "0.13.3-0"]
+                 [cljsjs/nvd3 "1.8.1-0"]
+                 [cljsjs/phaser "2.4.2-0"]
+
+                 [cljsjs/three "0.0.72-0"]
+
+                 [prismatic/schema "1.0.4"]
+                 ;; utility
+                 [prismatic/plumbing "0.5.2"]
+
+                 ;; flat file db
+                 ;; [com.taoensso/nippy "2.10.0"]
+                 
+                 [com.taoensso/sente "1.7.0"]
+                 ;; see https://github.com/ptaoussanis/sente
+                 ;; [taoensso.sente.server-adapters.immutant :refer (sente-web-server-adapter)]
+                 [org.clojure/core.async "0.1.374"]
+
+                 [cljsjs/codemirror "5.10.0-0"]
+
+
+                 [org.immutant/web "2.1.2"]
+                 [org.immutant/caching "2.1.2"]
+                 [org.immutant/messaging "2.1.2"]
+                 [org.immutant/scheduling "2.1.2"]
+                 [org.immutant/transactions "2.1.2"]
+                 
+                 ]
 
   :plugins [[lein-cljsbuild "1.1.1"]
             [lein-environ "1.0.1"]]
@@ -89,7 +124,11 @@
              {:dependencies [[figwheel "0.5.0-3"]
                              [figwheel-sidecar "0.5.0-3"]
                              [com.cemerick/piggieback "0.2.1"]
-                             [org.clojure/tools.nrepl "0.2.12"]]
+                             [org.clojure/tools.nrepl "0.2.12"]
+
+                             ;; for dependency reload
+                             [alembic "0.3.2"]
+                             ]
 
               :plugins [[lein-figwheel "0.5.0-2"]
                         [lein-doo "0.1.6"]]
