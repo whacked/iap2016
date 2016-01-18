@@ -60,7 +60,9 @@
            (for [msg (@chatroom-state :message-history)]
              [:div
               (:username msg) ":"
-              [:div
+              [:textarea
+               {:style {:width "100%"
+                        :height "4em"}}
                (:content msg)]]))
     ]])
 
