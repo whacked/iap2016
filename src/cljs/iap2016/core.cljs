@@ -4,6 +4,11 @@
             [devtools.core :as devtools]
             
             [goog.dom :as dom]
+            
+            ;; transmission
+            [cljs.core.async :as async :refer (<! >! put! chan)]
+            [taoensso.sente  :as sente :refer (cb-success?)]
+            
             ))
 
 (devtools/enable-feature! :sanity-hints :dirac)
@@ -15,6 +20,17 @@
   "get current time"
   []
   (.getTime (js/Date.)))
+
+;; === transmission ===========================
+(let [{:keys [chsk ch-recv send-fn state]}
+      (sente/make-channel-socket! "/chsk" ; Note the same path as before
+                                  {:type :auto ; e/o #{:auto :ajax :ws}
+                                   })]
+  (def chsk       chsk)
+  (def ch-chsk    ch-recv) ; ChannelSocket's receive channel
+  (def chsk-send! send-fn) ; ChannelSocket's send API fn
+  (def chsk-state state)   ; Watchable, read-only atom
+  )
 
 ;; === hello world ============================
 (defonce app-state
