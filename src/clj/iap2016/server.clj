@@ -44,6 +44,18 @@
      :body (io/input-stream (io/resource "public/index.html"))})
   (resources "/"))
 
+
+;; state management
+(def db
+  (atom {:message-history []
+         :user-map {}}))
+
+;; persistence
+(def DATA-FILE "data.edn")
+(defn save-state! []
+  (spit DATA-FILE (pr-str @db)))
+(defn load-state! []
+  (reset! db (read-string (slurp DATA-FILE))))
 (def http-handler
   (-> routes
       (wrap-defaults api-defaults)
