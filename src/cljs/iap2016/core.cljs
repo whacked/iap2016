@@ -31,7 +31,7 @@
     :user-list ["bot"] ;; unique
     :message-history [{:username "bot"
                        :content "hi everybody"
-                       :timestamp (t.now)}]
+                       :timestamp (now)}]
     }))
 (defn chatroom-component []
   [:div
