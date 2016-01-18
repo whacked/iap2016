@@ -1,4 +1,7 @@
 (ns iap2016.core
+  (:require-macros
+   [cljs.core.async.macros :as asyncm :refer (go go-loop)]
+   )
   (:require [reagent.core :as reagent]
 
             [devtools.core :as devtools]
@@ -21,7 +24,12 @@
   []
   (.getTime (js/Date.)))
 
+;; save typing
+(def dlog (js/console.log.bind js/console))
+
 ;; === transmission ===========================
+;; sente setup is straight from the example:
+;; https://github.com/ptaoussanis/sente/blob/master/example-project/src/example/my_app.cljx
 (let [{:keys [chsk ch-recv send-fn state]}
       (sente/make-channel-socket! "/chsk" ; Note the same path as before
                                   {:type :auto ; e/o #{:auto :ajax :ws}
@@ -31,6 +39,43 @@
   (def chsk-send! send-fn) ; ChannelSocket's send API fn
   (def chsk-state state)   ; Watchable, read-only atom
   )
+
+(defmulti event-msg-handler :id) ; Dispatch on event-id
+;; Wrap for logging, catching, etc.:
+(defn     event-msg-handler* [{:as ev-msg :keys [id ?data event]}]
+  (event-msg-handler ev-msg))
+
+(do ; Client-side methods
+  (defmethod event-msg-handler :default ; Fallback
+    [{:as ev-msg :keys [event]}]
+    (dlog (str "Unhandled event: " (pr-str event))))
+
+  (defmethod event-msg-handler :chsk/state
+    [{:as ev-msg :keys [?data]}]
+    (if (= ?data {:first-open? true})
+      (dlog "Channel socket successfully established!")
+      (dlog (str "Channel socket state change: " (pr-str ?data)))))
+
+  (defmethod event-msg-handler :chsk/recv
+    [{:as ev-msg :keys [?data]}]
+    (dlog "received data")
+    (dlog ev-msg)
+    )
+
+  (defmethod event-msg-handler :chsk/handshake
+    [{:as ev-msg :keys [?data]}]
+    (let [[?uid ?csrf-token ?handshake-data] ?data]
+      (dlog (str "%cHandshake: " (pr-str ?data))
+            "color:cyan;")))
+  )
+
+(def router_ (atom nil))
+(defn stop-router! []
+  (when-let [stop-f @router_] (stop-f)))
+(defn start-router! []
+  (stop-router!)
+  ;; start-chsk-router! returns a stopping function
+  (reset! router_ (sente/start-chsk-router! ch-chsk event-msg-handler*)))
 
 ;; === hello world ============================
 (defonce app-state
