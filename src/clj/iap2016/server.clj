@@ -10,6 +10,7 @@
 
             ;; see https://github.com/ptaoussanis/sente
             [taoensso.sente :as sente]
+            [taoensso.timbre :as tm]
             
             ;; NOTE:
             ;; http://www.raynes.me/logs/irc.freenode.net/clojure/2015-06-05.txt
@@ -17,6 +18,8 @@
             ;; [immutant.web :as web]
             ;; [taoensso.sente.server-adapters.immutant :refer (sente-web-server-adapter)]
             [taoensso.sente.server-adapters.http-kit      :refer (sente-web-server-adapter)]
+
+            [datascript.core :as d]
             )
   (:gen-class))
 
