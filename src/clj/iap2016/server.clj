@@ -120,14 +120,12 @@
 
 
 (def http-handler
-  (-> routes
-      (wrap-defaults
+  (-> (wrap-defaults
+       routes
        (assoc-in
-        api-defaults
+        ring.middleware.defaults/site-defaults
         [:security :anti-forgery]
         {:read-token (fn [req] (-> req :params :csrf-token))}))
-      ring.middleware.keyword-params/wrap-keyword-params
-      ring.middleware.params/wrap-params
       wrap-with-logger
       wrap-gzip))
 
