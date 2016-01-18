@@ -50,7 +50,16 @@
        {:style {:border "1px solid orange"
                 :padding "2px"
                 :float "left"}}
-       username]))])
+       username]))
+   [:div
+    ;; message log
+    (apply vector
+           :div
+           (for [msg (@chatroom-state :message-history)]
+             [:div
+              (:username msg)
+              (:content msg)]))
+    ]])
 
 ;; init app
 (reagent/render-component
