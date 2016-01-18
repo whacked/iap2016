@@ -81,7 +81,8 @@
       :style {:width "100%"}}]
     [:button
      {:onClick (fn [_]
-                 (js/console.log "clicked"))
+                 (js/console.log
+                  (dom/getElement "inp-chat-message")))
       :type "button"}
      "submit"]]])
 
