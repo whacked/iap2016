@@ -24,7 +24,11 @@
     }))
 (defn chatroom-component []
   [:div
-   "hi all"
+   [:div
+    "welcome to "
+    [:span
+     {:style {:fontWeight "bold"}}
+     (@chatroom-state :title)]]
    (apply
     vector
     :ul
