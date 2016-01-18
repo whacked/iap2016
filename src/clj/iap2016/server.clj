@@ -23,6 +23,9 @@
             )
   (:gen-class))
 
+;; write trace messages to stdout
+(tm/merge-config! {:level :trace})
+
 (let [{:keys [ch-recv send-fn ajax-post-fn ajax-get-or-ws-handshake-fn
               connected-uids]}
       (sente/make-channel-socket! sente-web-server-adapter {})]
