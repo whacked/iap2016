@@ -48,10 +48,25 @@
   (resources "/"))
 
 
-;; state management
+
+;; === utility ===============================
+(defn tnow [] (System/currentTimeMillis))
+
+
+;; === state management ===============================
+
+;; for datascript
+(def db-schema {:message-history []
+                :user-map {}})
+(defonce conn (d/create-conn db-schema))
+;; yet unused
+
 (def db
-  (atom {:message-history []
-         :user-map {}}))
+  (atom {:message-history [{:username "bot"
+                            :content "hi everybody"
+                            :timestamp (tnow)}
+                           ]
+         :user-map {"bot" {}}}))
 
 ;; persistence
 (def DATA-FILE "data.edn")
@@ -59,6 +74,41 @@
   (spit DATA-FILE (pr-str @db)))
 (defn load-state! []
   (reset! db (read-string (slurp DATA-FILE))))
+
+;; seed the db
+;; (swap! db assoc-in [:user-map :bot] {:address "server"})
+
+(defn get-base-data-status []
+  {:timestamp (tnow)
+   :latest (or (last (map :timestamp (:message-history @db)))
+               (last (map :timestamp (vals (:user-map @db)))))
+   :message-count (count (:message-history @db))})
+
+;; transmission
+(defmulti event-msg-handler :id) ; Dispatch on event-id
+;; Wrap for logging, catching, etc.:
+(defn     event-msg-handler* [{:as ev-msg :keys [id ?data event]}]
+  (tm/trace (format "Event: %s" event))
+  (event-msg-handler ev-msg))
+
+(do ; Server-side methods
+  (defmethod event-msg-handler :default ; Fallback
+    [{:as ev-msg :keys [event id ?data ring-req ?reply-fn send-fn]}]
+    (let [session (:session ring-req)
+          uid     (:uid     session)]
+      (tm/debug (format "Unhandled event: %s" event))
+      (when ?reply-fn
+        (?reply-fn {:umatched-event event}))))
+  (defmethod event-msg-handler :server/load-snapshot
+    [{:as ev-msg :keys [event id ?data ring-req ?reply-fn send-fn]}]
+    (let []
+      (when ?reply-fn
+        (?reply-fn
+         {:status (get-base-data-status)
+          :user-map (:user-map @db)
+          :message-history (:message-history @db)
+          }))))
+
 (def http-handler
   (-> routes
       (wrap-defaults api-defaults)
