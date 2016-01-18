@@ -47,7 +47,8 @@
     (for [username (@chatroom-state :user-list)]
       [:li
        {:style {:border "1px solid blue"
-                :padding "2px"}}
+                :padding "2px"
+                :float "left"}}
        username]))])
 
 ;; init app
