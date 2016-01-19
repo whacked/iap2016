@@ -310,6 +310,44 @@
        (hum/note-off audio-out))
      duration)))
 
+;; poor man scheduler
+(comment
+  (let [
+        c 523.25
+        a 440.00
+        g 392.00
+        e 329.63
+        d 293.66
+        C 261.63
+        
+        gap 0
+
+        jingle1 [
+                 C 2 C 1 C 2 d 1 e 2 d 1 g 2 e 1 c 2 a 1 g 2 e 1 g 6
+                 C 2 C 1 C 2 d 1 e 2 g 1 a 2 a 1 e 3 e 2 d 1 C 6
+                 c 2 a 1 c 2 a 1 g 2 e 1 g 2 e 1 g 3 c 3 c 6
+                 ]
+        jingle2 [
+                 c 2 c 2 c 2 a 1 g 1 a 1 g 1 e 2 e 4
+                 a 2 a 2 a 2 g 1 e 1 g 1 e 1 d 2 d 4
+                 c 2 c 2 c 2 a 1 g 1 a 1 g 1 e 2 e 4
+                 d 2 a 2 g 2 e 1 g 1 a 2 a 2 a 4
+                 ]
+        ]
+    (loop [toffset 0
+           note-seq (take 1000 (partition 2 jingle1))]
+      (if (empty? note-seq)
+        nil
+        (let [[freq nbeat] (first note-seq)
+              duration (* nbeat 200)]
+          (dlog "HELLO" nbeat freq duration toffset)
+
+          (js/setTimeout
+           #(play-freq freq :duration (- duration gap))
+           toffset)
+          (recur (+ toffset duration)
+                 (rest note-seq)))))))
+
 (defn webaudio-component []
   (fn []
     [:div
