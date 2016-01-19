@@ -66,6 +66,7 @@
                  [com.cemerick/url "0.1.1"]
 
                  [org.clojure/data.json "0.2.6"]
+                 [org.clojure/data.csv "0.1.3"]
                  ]
 
   :plugins [[lein-cljsbuild "1.1.1"]
