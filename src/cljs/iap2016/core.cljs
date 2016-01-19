@@ -19,6 +19,7 @@
 
 
             [cljsjs.nvd3]
+            [cljsjs.three]
             ))
 
 (devtools/enable-feature! :sanity-hints :dirac)
@@ -368,7 +369,113 @@
     ))
 
 
+;; THREE render code
 
+;; preload
+;; wanted to do this:
+;; (def tex-clojure (THREE.ImageUtils.loadTexture "https://upload.wikimedia.org/wikipedia/en/1/1d/Clojure_logo.gif"))
+;; but blocked by CORS... so for our purposes you need to download it to
+;; resources/img/Clogore_logo.gif; not adding it to repo
+(comment
+  (def tex-clojure (THREE.ImageUtils.loadTexture "http://localhost:3449/img/Clojure_logo.gif"))
+  (aset tex-clojure "wrapS" THREE.RepeatWrapping)
+  (aset tex-clojure "wrapT" THREE.RepeatWrapping)
+  (aset tex-clojure "minFilter" THREE.LinearFilter)
+  (aset tex-clojure "magFilter" THREE.LinearFilter)
+  (aset tex-clojure "generateMipmaps" false)
+  ((.. tex-clojure -repeat -set) 2 2)
+  (aset tex-clojure "needsUpdate" true)
+  
+  (js/document.body.appendChild
+   (doto (js/document.createElement "div")
+     (.setAttribute "id" "foo"))))
+
+(comment
+ (let [W 400
+       H 300
+
+       rdr (THREE.WebGLRenderer.)
+       cam (THREE.PerspectiveCamera.
+            45                          ; view angle
+            (/ W H)                     ; perspective
+            0.1                         ; near
+            1000                        ; far
+            )
+
+       scn (THREE.Scene.)
+
+       ;; geom (THREE.SphereGeometry. 7 12 12)
+       geom (THREE.CubeGeometry. 40 40 40)
+
+       mat1 (THREE.MeshLambertMaterial. #js {:color "red"
+                                             :transparent true
+                                             :opacity 0.8})
+       mat (THREE.MeshBasicMaterial. #js {:map tex-clojure
+                                          :opacity true})
+
+       mesh (THREE.Mesh. geom mat)
+      
+       light (THREE.DirectionalLight. 0xFFFF00 3)
+       ]
+   
+   (doseq [i (range (aget (dom/getElement "foo") "childNodes" "length"))]
+     (.removeChild
+      (dom/getElement "foo")
+      (aget (dom/getElement "foo") "childNodes" i)))
+   
+   
+   (aset cam "position" "z" 100)
+
+   (aset  "rotation" "z" (/ 2 Math/PI))
+
+   (doto (.-position light)
+     (.set 20 100 50)
+     (.multiplyScalar 1.6))
+   (aset light "castShadow" true)
+   (aset light "shadowCameraVisible" true)
+   (aset light "shadowMapWidth" 10)
+   (aset light "shadowMapHeight" 10)
+      
+   (aset light "shadowCameraLeft" -200)
+   (aset light "shadowCameraRight" 200)
+   (aset light "shadowCameraTop" 200)
+   (aset light "shadowCameraBottom" -200)
+
+   (aset light "shadowCameraFar" 300)
+   (aset light "shadowDarkness" 0.2)
+
+   (doto scn
+     (.add cam)
+     (.add mesh)
+     (.add (THREE.AmbientLight. 0x999999))
+     (.add light)
+     )
+  
+   (.setSize rdr W H)
+
+   (.appendChild (dom/getElement "foo")
+                 (.-domElement rdr))
+
+   (letfn [(render []
+             (aset mesh "rotation" "x"
+                   (+ 0.01
+                      (aget mesh "rotation" "x")))
+             (aset mesh "rotation" "y"
+                   (+ 0.005
+                      (aget mesh "rotation" "y")))
+             (.render rdr scn cam))
+           (animate []
+             (js/requestAnimationFrame animate)
+             (render))]
+     (animate))
+   ))
+
+(defn threejs-component []
+  (fn []
+    [:div
+     "three js is cool"
+     ]
+    ))
 
 
 (defn main-component []
@@ -415,6 +522,9 @@
 
        :plot
        [plot-component]
+
+       :threejs
+       [threejs-component]
 
        (do
          ;; default
