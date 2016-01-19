@@ -286,12 +286,10 @@
                      )))
 
 (defonce audio-context (hum/create-context))
-;; for a smarter app you probably want to manage a pool of contexts
-;; i don't know how cheap they are to create/destroy
 (defn play-freq
   [freq & {:keys [duration]
            :or {duration 1000}}]
-  (let [audio-osc     (hum/create-osc audio-context :square)
+  (let [audio-osc     (hum/create-osc audio-context :sine)
         audio-filter  (hum/create-biquad-filter audio-context)
         audio-out     (hum/create-gain audio-context)
         ]
