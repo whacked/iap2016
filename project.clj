@@ -53,6 +53,16 @@
                  [org.immutant/scheduling "2.1.2"]
                  [org.immutant/transactions "2.1.2"]
 
+
+                 ;; ;; wolfram alpha
+                 ;; [self/wolframalpha "1.1"]
+
+                 ;; ;; WA deps
+                 ;; [org.apache.httpcomponents/httpclient "4.5.1"]
+                 ;; [org.apache.httpcomponents/httpcore "4.4.4"]
+                 ;; [commons-codec/commons-codec "1.10"]
+                 ;; [commons-logging/commons-logging "1.2"]
+
                  ]
 
   :plugins [[lein-cljsbuild "1.1.1"]
