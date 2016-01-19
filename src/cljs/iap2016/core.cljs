@@ -432,8 +432,7 @@
 (start-router!)
 
 (reagent/render-component
- ;;main-component
- chatroom-component
+ [main-component]
  (dom/getElement "app"))
 
 ;; (reload-from-server!)
