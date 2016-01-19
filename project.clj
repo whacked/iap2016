@@ -67,6 +67,10 @@
 
                  [org.clojure/data.json "0.2.6"]
                  [org.clojure/data.csv "0.1.3"]
+
+
+
+                 [hum "0.4.0"]
                  ]
 
   :plugins [[lein-cljsbuild "1.1.1"]

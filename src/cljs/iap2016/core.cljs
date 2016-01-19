@@ -11,6 +11,11 @@
             ;; transmission
             [cljs.core.async :as async :refer (<! >! put! chan)]
             [taoensso.sente  :as sente :refer (cb-success?)]
+
+
+            ;; web audio
+            ;; warning: last commit > year ago
+            [hum.core :as hum]
             
             ))
 
@@ -280,6 +285,37 @@
                              "background:black;border:3px solid green;color:white;"))
                      )))
 
+(defonce audio-context (hum/create-context))
+;; for a smarter app you probably want to manage a pool of contexts
+;; i don't know how cheap they are to create/destroy
+(defn play-freq
+  [freq & {:keys [duration]
+           :or {duration 1000}}]
+  (let [audio-osc     (hum/create-osc audio-context :square)
+        audio-filter  (hum/create-biquad-filter audio-context)
+        audio-out     (hum/create-gain audio-context)
+        ]
+    
+    (hum/connect audio-osc audio-filter audio-out)
+    (hum/start-osc audio-osc)
+    (hum/connect-output audio-out)
+
+    (hum/note-on audio-out
+                 audio-osc
+                 freq)
+
+    (js/setTimeout
+     (fn []
+       (hum/note-off audio-out))
+     duration)))
+
+(defn webaudio-component []
+  (fn []
+    [:div
+     "fun with web audio"]
+    ))
+
+
 (defn main-component []
   (fn []
     [:div
@@ -317,11 +353,7 @@
              "join"]]))
 
        :audio
-       (do
-         [:div
-          "fun with web audio"]
-
-         )
+       [webaudio-component]
 
        (do
          ;; default
