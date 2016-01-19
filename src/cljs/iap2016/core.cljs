@@ -287,9 +287,11 @@
 
      ;; render "tabs"
      [:ul
-      (for [tab-name (:available-section @app-state)]
+      (for [tab-key (:available-section @app-state)]
         [:li
-         (name tab-name)])
+         {:onClick (fn [_]
+                     (swap! app-state assoc :selected-section tab-key))}
+         (name tab-key)])
       ]
      
      (case (:selected-section @app-state)
