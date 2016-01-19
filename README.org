@@ -116,12 +116,45 @@ your option) any later version.
 ** Chestnut
 
 Created with [Chestnut](http://plexus.github.io/chestnut/) 0.9.0-SNAPSHOT (5899fff7).
+
+* assorted notes
+
+  
+** using alembic to hot load dependencies
+
+   (require 'alembic.still)
+   (alembic.still/lein deps)
+   or
+   (alembic.still/distill '[group/art "version"])
+
+** devtools
+
+   make sure you have chrome 47+
+
+   and in console -> settings (F1)
+   check "enable custom formatters"
+   otherwise you won't see the prettified data structures
+
 ** gorilla repl
 
    after modifying project.clj
 
    =lein gorilla= launches the gorilla repl server;
    the active link should be like http://locaalhost:?????/worksheet.html
+
+** wolfram alpha
+
+   get the jar from
+   http://products.wolframalpha.com/api/libraries.html
+
+
+   make sure you have maven installed
+   (e.g. =sudo apt-get install maven2=)
+
+   #+BEGIN_SRC sh :eval never
+   mvn install:install-file -Dfile=WolframAlpha-1.1.jar -DgroupId=self \
+    -DartifactId=wolframalpha -Dversion=1.1 -Dpackaging=jar
+   #+END_SRC
    
 
 
