@@ -18,6 +18,20 @@
 (devtools/install!)
 (enable-console-print!)
 
+
+
+;; === state decl ===
+(defonce chatroom-state
+  (reagent/atom
+   {:title "title goes here"
+    :user-map {}
+    :message-history []
+    }))
+
+
+
+
+
 ;; === utility ================================
 (defn tnow
   "get current time"
@@ -56,17 +70,22 @@
       (dlog "Channel socket successfully established!")
       (dlog (str "Channel socket state change: " (pr-str ?data)))))
 
+  (declare handle-event)
   (defmethod event-msg-handler :chsk/recv
     [{:as ev-msg :keys [?data]}]
     (dlog "received data")
     (dlog ev-msg)
-    )
+    (dlog ?data)
+    (apply handle-event ?data))
 
   (defmethod event-msg-handler :chsk/handshake
     [{:as ev-msg :keys [?data]}]
     (let [[?uid ?csrf-token ?handshake-data] ?data]
       (dlog (str "%cHandshake: " (pr-str ?data))
             "color:cyan;")))
+
+  
+
   )
 
 (def router_ (atom nil))
@@ -79,26 +98,12 @@
 
 
 
-;; === hello world ============================
-(defonce app-state
-  (reagent/atom
-   {:text "Hello Chestnut!"
-    }))
 
-(defn main-component []
-  [:div
-   [:h1 (:text @app-state)]
-   ])
+
 
 ;; === chatroom ===============================
 ;; message structure
 ;; :username :content :timestamp
-(defonce chatroom-state
-  (reagent/atom
-   {:title "connecting..."
-    :user-map {}
-    :message-history []
-    }))
 (defn chatroom-component []
   [:div
    {:style {:border "2px solid gray"
@@ -117,48 +122,84 @@
      :ul
      {:style {:list-style "none"
               :background "beige"}}
-     (for [username (keys (@chatroom-state :user-map))]
+     (for [user (vals (@chatroom-state :user-map))]
        [:li
         {:style {:border "1px solid orange"
                  :padding "2px"
                  :display "inline"}}
-        username]))]
+        (:username user)]))]
    ;; message log
    [:div
     (apply vector
            :div
            (for [msg (@chatroom-state :message-history)]
              [:div
-              (:username msg) " said:"
+              {:style {:fontSize "small"}}
+              [:b
+               (:username msg)]
+              " said at "
+              [:em
+               (str (js/Date. (:timestamp msg)))]
+              " :"
               [:textarea
                {:readOnly "readOnly"
                 :style {:width "100%"
                         :height "4em"
                         }
                 :value (:content msg)}]]))
-    ]
-   ;; input area
-   [:div
-    ;; don't want to attach key listeners to this item, we will cheat
-    [:textarea
-     {:id "inp-chat-message"
-      :placeholder "enter your message here"
-      :style {:width "100%"}}]
-    [:button
-     {:onClick (fn [_]
-                 (js/console.log
-                  {:message (.-value (dom/getElement "inp-chat-message"))}))
-      :type "button"}
-     "submit"]]])
+    ]])
 
 
-;; === event handler ======================
+;; === handler ======================
+(defn load-since!
+  [timestamp]
+  (chsk-send!
+   [:server/load-snapshot {:since timestamp}] 5000
+   (fn [data]
+     (when (cb-success? data)
+       (swap!
+        chatroom-state
+        assoc
+        :user-map (:user-map data)
+        :message-history
+        (->>
+         (concat (:message-history @chatroom-state)
+                     (:message-history data))
+         (map (fn [msg]
+                [[(:timestamp msg)
+                  (:username msg)
+                  ] msg]))
+         (into {})
+         (vector)
+         (sort)
+         (map vals)
+         (first)))))))
+
+;; TODO turn this into a multimethod
+(defn handle-event [id & [payload]]
+  (case id
+    :status/latest-message
+    (do
+      (let [latest-timestamp (apply max (map :timestamp (:message-history @chatroom-state)))]
+        (if (> (:latest payload)
+               latest-timestamp)
+          (do
+            (dlog "asking for refresh...")
+            (load-since! latest-timestamp))
+          (dlog "up to date"))
+        ))))
+
 (defn reload-from-server!
   "ignore local state and reload data from server as if we just joined"
   []
   (let []
+    (load-since! -1)))
+
+(defn server-test []
+  (let []
     (chsk-send!
-     [:server/load-snapshot] 5000
+     [:server/test]
+     5000
      (fn [data]
        (dlog "reset...")
        (dlog data)
@@ -168,6 +209,85 @@
           assoc
           :user-map (:user-map data)
           :message-history (:message-history data)))))))
+;; === hello world ============================
+(defonce app-state
+  (reagent/atom
+   {:text "Hello Chestnut!"
+    :username nil
+    }))
+
+(defn login!
+  [username]
+  (sente/ajax-call "/login"
+                   {:method :post
+                    :params {:username username
+                             :csrf-token (:csrf-token @chsk-state)}}
+                   (fn [ajax-resp]
+                     (sente/chsk-reconnect! chsk)
+                     (swap! app-state assoc :username username)
+                     (swap! app-state assoc :text (str "logged in as " username))
+                     (when-let [body (:?content ajax-resp)]
+                       (dlog "%c + + + + + + + + + + "
+                             "background:black;border:3px solid green;color:white;"))
+                     )))
+
+(defn post-message! [code]
+  (chsk-send!
+   [:server/post-message {:username (:username @app-state)
+                          :content code}] 5000
+   (fn [data]
+     (dlog "response...")
+     (dlog data))))
+
+(defn main-component []
+  (let [my-code (reagent/atom "")]
+    (fn []
+      [:div
+       [:h1 (:text @app-state)]
+       (if (:username @app-state)
+         [:div
+          [chatroom-component]
+          "post a message or some code"
+          [:textarea
+           {:placeholder "enter your message"
+            :style {:width "100%"}
+            :value @my-code
+            :onChange (fn [e] (reset! my-code (aget e "target" "value")))
+            }
+           ]
+          [:button
+           {:onClick (fn [_]
+                       (if (< 0 (count @my-code))
+                         (post-message! @my-code))
+                       (reset! my-code ""))
+            :type "button"}
+           "submit"]
+          [:button
+           {:onClick (fn [_]
+                       (reload-from-server!))
+            :type "button"}
+           "sync"]
+          ]
+
+         (let [inp-data (atom "")]
+           [:div
+            "enter name: "
+            [:input
+             {:type "text"
+              :onChange (fn [e]
+                          (reset! inp-data (aget e "target" "value")))
+              }]
+            [:button
+             {:type "button"
+              :onClick (fn [_]
+                         (login! @inp-data))}
+             "join"]]))
+       ])))
+
+
+
+
+
 
 
 ;; init app

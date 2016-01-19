@@ -70,12 +70,22 @@
 ;; (swap! db assoc-in [:user-map :server] {:username "bot" :timestamp (tnow)})
 
 (defn get-base-data-status []
-  {:timestamp (tnow)
-   :latest (or (last (map :timestamp (:message-history @db)))
+  {:latest (or (last (map :timestamp (:message-history @db)))
                (last (map :timestamp (vals (:user-map @db)))))
    :message-count (count (:message-history @db))})
 
 ;; transmission
+(defn broadcast-last
+  []
+  (doseq [uid (:any @connected-uids)]
+    (chsk-send! uid
+                [:status/latest-message
+                 (assoc (get-base-data-status)
+                        :message (->>
+                                  (:message-history @db)
+                                  (sort-by :timestamp)
+                                  (last)))])))
+
 (defmulti event-msg-handler :id) ; Dispatch on event-id
 ;; Wrap for logging, catching, etc.:
 (defn     event-msg-handler* [{:as ev-msg :keys [id ?data event]}]
@@ -90,15 +100,61 @@
       (tm/debug (format "Unhandled event: %s" event))
       (when ?reply-fn
         (?reply-fn {:umatched-event event}))))
-  (defmethod event-msg-handler :server/load-snapshot
+
+  (defmethod event-msg-handler :server/status
     [{:as ev-msg :keys [event id ?data ring-req ?reply-fn send-fn]}]
     (let []
+      (when ?reply-fn
+        (?reply-fn
+         (assoc (get-base-data-status)
+                :message-count (count (:message-history @db))
+                :user-count (count (:user-map @db)))))))
+  
+  (defmethod event-msg-handler :server/load-snapshot
+    [{:as ev-msg :keys [event id ?data ring-req ?reply-fn send-fn]}]
+    (let [since (or (:since ?data)
+                    -1)]
+      (when ?reply-fn
+        (?reply-fn
+         {:status (get-base-data-status)
+          :user-map (:user-map @db)
+          :message-history
+          (filter
+           (fn [msg]
+             (<= since (:timestamp msg)))
+           (:message-history @db))
+          }))))
+
+  (defmethod event-msg-handler :server/post-message
+    [{:as ev-msg :keys [event id ?data ring-req ?reply-fn send-fn]}]
+    (let [{:keys [session params]} ring-req
+          {:keys [username]} params]
+      (swap!
+       db
+       update
+       :message-history
+       conj
+       {:username (:client-id params)
+        :content (:content ?data)
+        :timestamp (tnow)})
+
+      (broadcast-last)
+      
       (when ?reply-fn
         (?reply-fn
          {:status (get-base-data-status)
           :user-map (:user-map @db)
           :message-history (:message-history @db)
           }))))
+  
+  (defmethod event-msg-handler :server/query-data
+    [{:as ev-msg :keys [event id ?data ring-req ?reply-fn send-fn]}]
+    (let [session (:session ring-req)
+          uid     (:uid     session)
+          query   (:q ?data)
+          client-time (:time ?data)]
+      ))
+  )
 
 (defonce router_ (atom nil))
 (defn  stop-router! [] (when-let [stop-f @router_] (stop-f)))
@@ -110,6 +166,25 @@
   (start-router!))
 ;; (start-router!)
 
+
+(defn login!
+  "Here's where you'll add your server-side login/auth procedure (Friend, etc.).
+  In our simplified example we'll just always successfully authenticate the user
+  with whatever user-id they provided in the auth request."
+  [ring-request]
+  (let [{:keys [session params]} ring-request
+        {:keys [username]} params]
+    ;; use csrf-token (established on handshake)
+    ;; as unique identifier. you shouldn't do this
+    ;; for your own chat app
+    (swap! db
+           assoc-in
+           [:user-map (:csrf-token params)]
+           {:username (:username params)
+            :timestamp (tnow)})
+    {:status 200
+     :session (assoc session :uid username)
+     :body (pr-str (get-base-data-status))}))
 
 (defroutes routes
   
