@@ -325,7 +325,10 @@
      [:ul
       (for [tab-key (:available-section @app-state)]
         [:li
-         {:onClick (fn [_]
+         {:style {:border (if (= tab-key (:selected-section @app-state))
+                            "2px solid orange"
+                            "2px solid gray")}
+          :onClick (fn [_]
                      (swap! app-state assoc :selected-section tab-key))}
          (name tab-key)])
       ]
