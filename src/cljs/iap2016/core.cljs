@@ -16,7 +16,9 @@
             ;; web audio
             ;; warning: last commit > year ago
             [hum.core :as hum]
-            
+
+
+            [cljsjs.nvd3]
             ))
 
 (devtools/enable-feature! :sanity-hints :dirac)
@@ -314,6 +316,61 @@
     ))
 
 
+
+
+(defn render-nvd3 [el]
+  ;; cf http://nvd3.org/examples/line.html;
+  ;; look how trivially simple the data generator becomes in cljs!
+  ;; NOTE: nvd3 line example is out of date wrt options
+  ;; `transitionDuration` and `useInteractiveGuideline`
+  (nv.addGraph
+   (fn []
+     (let [nv-chart (doto (nv.models.lineChart)
+                      (.options (clj->js {:transitionDuration 300
+                                          :useInteractiveGuideline true}))
+                      (.margin (clj->js {:left 100}))
+                      (.showLegend false) ;; leave this to react
+                      (.showYAxis true)
+                      (.showXAxis true))]
+       (doto (.-xAxis nv-chart)
+         (.axisLabel "time (s)")
+         (.tickFormat (d3.format ",r")))
+       (doto (.-yAxis nv-chart)
+         (.axisLabel "amplitude")
+         (.tickFormat (d3.format ".02f")))
+
+       (nv.utils.windowResize #(.update nv-chart))
+
+       (-> (d3.select el)
+           (.datum (clj->js [{:values (map (fn [i]
+                                             {:x i
+                                              :y (Math/sin (/ i 10))})
+                                           (range 100))}]))
+           (.call nv-chart)
+           )
+       )))
+  )
+
+(defn plot-component []
+  (fn []
+    ;; this is tricky because we need to tell reagent
+    ;; to tell react to not update the chart drawing area
+    [(with-meta identity
+       {:component-did-mount
+        (fn [el]
+          (render-nvd3 (reagent/dom-node el)))})
+     [:svg
+      {:id "testchart"
+       :style {:width "100%"
+               :height "500px"
+               :border "2px solid brown"}}
+      ]]
+    ))
+
+
+
+
+
 (defn main-component []
   (fn []
     [:div
@@ -355,6 +412,9 @@
 
        :audio
        [webaudio-component]
+
+       :plot
+       [plot-component]
 
        (do
          ;; default
