@@ -55,7 +55,9 @@
                             :content "hi everybody"
                             :timestamp (tnow)}
                            ]
-         :user-map {"bot" {}}}))
+         :user-map {:server {:username "bot"
+                             :timestamp (tnow)}
+                    }}))
 
 ;; persistence
 (def DATA-FILE "data.edn")
@@ -65,7 +67,7 @@
   (reset! db (read-string (slurp DATA-FILE))))
 
 ;; seed the db
-;; (swap! db assoc-in [:user-map :bot] {:address "server"})
+;; (swap! db assoc-in [:user-map :server] {:username "bot" :timestamp (tnow)})
 
 (defn get-base-data-status []
   {:timestamp (tnow)
