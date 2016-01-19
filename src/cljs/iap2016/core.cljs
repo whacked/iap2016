@@ -25,6 +25,12 @@
   (reagent/atom
    {:text "Hello Chestnut!"
     :username nil
+
+    :selected-section :chatroom
+    :available-section #{:chatroom
+                         :audio
+                         :plot
+                         :threejs}
     }))
 
 (defonce chatroom-state
@@ -278,25 +284,47 @@
   (fn []
     [:div
      [:h1 (:text @app-state)]
-     (if (:username @app-state)
-       [:div
-        [chatroom-component]
 
-        ]
-
-       (let [inp-data (atom "")]
+     ;; render "tabs"
+     [:ul
+      (for [tab-name (:available-section @app-state)]
+        [:li
+         (name tab-name)])
+      ]
+     
+     (case (:selected-section @app-state)
+       :chatroom
+       (if (:username @app-state)
          [:div
-          "enter name: "
-          [:input
-           {:type "text"
-            :onChange (fn [e]
-                        (reset! inp-data (aget e "target" "value")))
-            }]
-          [:button
-           {:type "button"
-            :onClick (fn [_]
-                       (login! @inp-data))}
-           "join"]]))
+          [chatroom-component]
+
+          ]
+
+         (let [inp-data (atom "")]
+           [:div
+            "enter name: "
+            [:input
+             {:type "text"
+              :onChange (fn [e]
+                          (reset! inp-data (aget e "target" "value")))
+              }]
+            [:button
+             {:type "button"
+              :onClick (fn [_]
+                         (login! @inp-data))}
+             "join"]]))
+
+       :audio
+       (do
+         [:div
+          "fun with web audio"]
+
+         )
+
+       (do
+         ;; default
+         [:div "quiet as a bear."]
+         ))
      ]))
 
 
