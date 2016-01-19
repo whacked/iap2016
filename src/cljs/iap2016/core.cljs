@@ -21,6 +21,12 @@
 
 
 ;; === state decl ===
+(defonce app-state
+  (reagent/atom
+   {:text "Hello Chestnut!"
+    :username nil
+    }))
+
 (defonce chatroom-state
   (reagent/atom
    {:title "title goes here"
@@ -101,9 +107,21 @@
 
 
 
+(defn post-message! [code]
+  (chsk-send!
+   [:server/post-message {:username (:username @app-state)
+                          :content code}] 5000
+   (fn [data]
+     (dlog "response...")
+     (dlog data))))
+
+
+
+
 ;; === chatroom ===============================
 ;; message structure
 ;; :username :content :timestamp
+(declare reload-from-server!)
 (defn chatroom-component []
   [:div
    {:style {:border "2px solid gray"
@@ -147,7 +165,33 @@
                         :height "4em"
                         }
                 :value (:content msg)}]]))
-    ]])
+    ]
+
+   (let [my-code (reagent/atom "")]
+    [:div
+    
+     "post a message or some code"
+     [:textarea
+      {:placeholder "enter your message"
+       :style {:width "100%"}
+       :value @my-code
+       :onChange (fn [e] (reset! my-code (aget e "target" "value")))
+       }
+      ]
+     [:button
+      {:onClick (fn [_]
+                  (if (< 0 (count @my-code))
+                    (post-message! @my-code))
+                  (reset! my-code ""))
+       :type "button"}
+      "submit"]
+    
+     [:button
+      {:onClick (fn [_]
+                  (reload-from-server!))
+       :type "button"}
+      "sync"]])
+   ])
 
 
 ;; === handler ======================
@@ -201,20 +245,19 @@
      [:server/test]
      5000
      (fn [data]
-       (dlog "reset...")
-       (dlog data)
-       (when (cb-success? data)
-         (swap! 
-          chatroom-state
-          assoc
-          :user-map (:user-map data)
-          :message-history (:message-history data)))))))
-;; === hello world ============================
-(defonce app-state
-  (reagent/atom
-   {:text "Hello Chestnut!"
-    :username nil
-    }))
+       (dlog "got...")
+       (dlog data)))))
+
+(defn query-data []
+  (let []
+    (chsk-send!
+     [:server/query-data {:q '[:find :a]}]
+     5000
+     (fn [data]
+       (dlog "got...")
+       (dlog data)))))
+
+
 
 (defn login!
   [username]
@@ -231,58 +274,30 @@
                              "background:black;border:3px solid green;color:white;"))
                      )))
 
-(defn post-message! [code]
-  (chsk-send!
-   [:server/post-message {:username (:username @app-state)
-                          :content code}] 5000
-   (fn [data]
-     (dlog "response...")
-     (dlog data))))
-
 (defn main-component []
-  (let [my-code (reagent/atom "")]
-    (fn []
-      [:div
-       [:h1 (:text @app-state)]
-       (if (:username @app-state)
-         [:div
-          [chatroom-component]
-          "post a message or some code"
-          [:textarea
-           {:placeholder "enter your message"
-            :style {:width "100%"}
-            :value @my-code
-            :onChange (fn [e] (reset! my-code (aget e "target" "value")))
-            }
-           ]
-          [:button
-           {:onClick (fn [_]
-                       (if (< 0 (count @my-code))
-                         (post-message! @my-code))
-                       (reset! my-code ""))
-            :type "button"}
-           "submit"]
-          [:button
-           {:onClick (fn [_]
-                       (reload-from-server!))
-            :type "button"}
-           "sync"]
-          ]
+  (fn []
+    [:div
+     [:h1 (:text @app-state)]
+     (if (:username @app-state)
+       [:div
+        [chatroom-component]
 
-         (let [inp-data (atom "")]
-           [:div
-            "enter name: "
-            [:input
-             {:type "text"
-              :onChange (fn [e]
-                          (reset! inp-data (aget e "target" "value")))
-              }]
-            [:button
-             {:type "button"
-              :onClick (fn [_]
-                         (login! @inp-data))}
-             "join"]]))
-       ])))
+        ]
+
+       (let [inp-data (atom "")]
+         [:div
+          "enter name: "
+          [:input
+           {:type "text"
+            :onChange (fn [e]
+                        (reset! inp-data (aget e "target" "value")))
+            }]
+          [:button
+           {:type "button"
+            :onClick (fn [_]
+                       (login! @inp-data))}
+           "join"]]))
+     ]))
 
 
 
